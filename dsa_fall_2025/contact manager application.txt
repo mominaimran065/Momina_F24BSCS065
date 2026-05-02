@@ -1,0 +1,187 @@
+#include<iostream>
+#include<string>
+#include<cctype>
+using namespace std;
+
+const int Max_Contacts = 50;
+
+class ItemType {
+public:
+	string name;
+	int  phonenumber;
+	string address;
+
+	//comparing by name (will use this for sorting)
+
+	bool operator<(const ItemType& other) const {
+		return name < other.name;
+	}
+
+	bool operator==(const string& othername) const {
+		return name == othername;
+	}
+
+	void print()const {
+		cout << "Name:" << name << endl;
+		cout << "Phone number:" << phonenumber << endl;
+		cout << "Address:" << address << endl;
+	}
+};
+
+class SortedType {
+private:
+	ItemType contacts[Max_Contacts];
+	int length;
+
+public:
+	SortedType() {
+		length = 0;
+	}
+
+	bool isfull()const {
+		return length == Max_Contacts;
+	}
+
+	void insertcontact(const ItemType& item) {
+		if (isfull()) {
+			cout << "Contact list is full";
+			return;
+		}
+		int pos = 0;
+		while (pos < length && contacts[pos] < item) {
+			pos++;
+		}
+
+		for (int i = length; i > pos; i--) {
+			contacts[i] = contacts[i - 1];
+		}
+
+		contacts[pos] = item;
+		length++;
+		cout << "Contacts added!";
+	}
+
+	void deletecontact(const string& name) {
+		int pos = -1;
+		for (int i = 0; i < length; i++) {
+			if (contacts[i] == name) {
+				pos = i;
+				break;
+			}
+		}
+		
+		if (pos == -1) {
+			cout << "Contact not found.";
+			return;
+		}
+
+		for (int i = pos; i < length - 1; i++) {
+			contacts[i] = contacts[i + 1];
+		}
+
+		length--;
+		cout << "Contact Deleted!";
+	}
+
+	void searchcontact(const string& name) const {
+		for (int i = 0; i < length; i++) {
+			if (contacts[i] == name) {
+				cout << "Contact found!" << endl;
+				contacts[i].print();
+				return;
+			}
+		}
+
+		cout << "Contact not found." << endl;
+	}
+	void Display()const {
+		if (length == 0) {
+			cout << "Contact list is empty." << endl;
+			return;
+		}
+		cout << "All Contacts" << endl;
+		for (int i = 0; i < length; i++)
+			contacts[i].print();
+	}
+};
+
+bool isValidName(const string& name) {
+	for (char ch : name) {
+		if (!isalpha(ch) && ch != ' ')
+			return false;
+	}
+	return !name.empty();
+}
+
+bool isValidphonenumber(int phonenumber) {
+	return(phonenumber >= 1000000000 && phonenumber <= 9999999999);
+}
+
+bool isValidaddress(const string& address) {
+	return !address.empty();
+}
+
+int main() {
+	SortedType contactlist;
+	int choice;
+
+	do {
+		cout << "Contact Manager" << endl;
+		cout << "1. Add Contact" << endl;
+		cout << "2. Search Contact" << endl;
+		cout << "3. Delete Contact" << endl;
+		cout << "4. Display all the contacts" << endl;
+		cout << "5. Exit" << endl;
+		cout << "6. Enter Choice" << endl;
+		cin >> choice;
+		cin.ignore();
+
+		if (choice == 1) {
+			ItemType newContact;
+			cout << "Enter name:";
+			getline(cin, newContact.name);
+			if (!isValidName(newContact.name)) {
+				cout << "Invlaid name. Use alphabets and spaces only!" << endl;
+				continue;
+			}
+			cout << "Enter Phonenumber (10 digits):";
+			cin >> newContact.phonenumber;
+			cin.ignore();
+			//(cin, newContact.phonenumber);
+			if (isValidphonenumber(newContact.phonenumber)) {
+				cout << "Invalid Phonenumber!" << endl;
+				continue;
+			}
+			cout << "Enter Address:";
+			getline(cin, newContact.address);
+			if (!isValidaddress(newContact.address)) {
+				cout << "Address cannot be empty." << endl;
+				continue;
+			}
+			contactlist.insertcontact(newContact);
+		}
+		else if (choice == 2) {
+			string name;
+			cout << "Enter name to search:";
+			getline(cin, name);
+			contactlist.searchcontact(name);
+		}
+		else if (choice == 3) {
+			string name;
+			cout << "Enter name to delete:";
+			getline(cin, name);
+			contactlist.deletecontact(name);
+		}
+		else if (choice == 4) {
+			contactlist.Display();
+		}
+		else if (choice == 5) {
+			cout << "Exiting.." << endl;
+		}
+		else {
+			cout << "Invalid Choice. Try again please." << endl;
+		}
+	}
+	while (choice != 5);
+	return 0;
+}

@@ -1,0 +1,345 @@
+#include<iostream>
+#include<string>
+using namespace std;
+
+const int Max_items = 5;
+enum RelationType{ LESS, GREATER, EQUAL};
+
+class itemtype
+{
+public:
+	itemtype();
+
+	RelationType comparedTo(itemtype) const;
+	void Print();
+	void Initialize(int number);
+private:
+	int value;
+};
+itemtype::itemtype() {
+	value = 0;
+}
+RelationType itemtype::comparedTo(itemtype otheritem) const
+{
+	if (value < otheritem.value)
+		return LESS;
+	else if (value > otheritem.value)
+		return GREATER;
+	else return EQUAL;
+}
+
+void itemtype::Initialize(int number)
+{
+	value = number;
+}
+void itemtype::Print()
+{
+	cout << value << " ";
+}
+
+class Node {
+public:
+	string destination;
+	string departure;
+	float duration;
+	string status;
+
+	Node* parent;
+	Node* left;
+	Node* right;
+	itemtype key;
+
+	Node(itemtype k,string dest, string dep, float dur, string stat) 
+	{
+		key = k;
+		destination = dest;
+		departure = dep;
+		duration = dur;
+		status = stat;
+		parent = nullptr;
+		left = nullptr;
+		right = nullptr;
+
+	}
+};
+
+class BST 
+{
+private:
+	Node* r; //root
+
+
+	Node* minimum(Node*r)
+	{
+		
+		while (r->left != NULL)
+		{
+			r = r->left;
+
+		}
+		return r;
+	}
+
+	void Transplant(Node* u, Node* v) 
+	{
+		if (u->parent == NULL)
+			r = v;
+
+		else if (u == u->parent->left)
+			u->parent->left = v;
+
+		else 
+			u->parent->right = v;
+
+		if (v != NULL)
+			v->parent = u->parent;
+	}
+	void inorder(Node* r) {
+		if (r != NULL) {
+
+			inorder(r->left);
+
+			cout << "Flight id: ";
+			r->key.Print();
+			cout << "Destination: " << r->destination << endl;
+			cout << "Departure: " << r->departure << endl;
+			cout << "Duration: " << r->duration << endl;
+			cout << "Status: " << r->status << endl;
+
+			inorder(r->right);
+		}
+	 }
+
+public:
+	BST() {
+		r = NULL;
+	}
+    
+	void insert(Node*z) {
+		Node* y = NULL;
+		Node* x = r;
+		while (x != NULL) {
+			y = x;
+			if (z->key.comparedTo(x->key) == LESS)
+				x = x->left;
+			else
+				x = x->right;
+		}
+		z->parent = y;
+		if (y == NULL)
+			r = z;
+		else if (z->key.comparedTo( y->key)==LESS)
+			y->left = z;
+		else
+			y->right = z;
+	}
+
+	void Delete (Node* z) {
+		Node* y = NULL;
+		if (z->left == NULL)  // no left child
+			Transplant(z, z->right);
+		else if (z->right == NULL)   //no right child
+			Transplant(z, z->left);
+		else {
+			Node* y = minimum(z->right);  //2 vhildren
+
+			if (y->parent != z) {
+				Transplant(y, y->right);
+
+				y->right = z->right;
+				y->right->parent = y;
+			}
+
+			Transplant(z, y);
+
+			y->left = z->left;
+			y->left->parent = y;
+		}
+	}
+
+	Node* search(Node* z,itemtype k) {
+		if (z == NULL || k.comparedTo(z->key) == EQUAL)
+			return z;
+		if (k.comparedTo( z->key)==LESS)
+			return search(z->left, k);
+		else
+			return search(z->right, k);
+	}
+
+	void Display() {
+		if ( r == NULL) 
+		cout << "No available flights " << endl;
+		else
+		inorder(r);
+	}
+
+	void showbyDestination(Node* r, string dest ) {
+		if (r != NULL)
+			showbyDestination(r->left, dest);
+
+		if (r->destination == dest) {
+			cout << "Flight id";
+			r->key.Print();
+			cout << endl;
+			cout << "Departure" << r->departure << "status" << r->status << endl;
+		}
+
+		showbyDestination(r->right, dest);
+
+
+	}
+
+	void showByStatus(Node* r, string st) {
+		if (r != NULL)
+			showByStatus(r->left, st);
+		if (r->status == st) {
+			cout << "Flight id ";
+			r->key.Print();
+			cout << "  Destination " << r->destination << endl;
+		}
+
+		showByStatus(r->right, st);
+	}
+
+	void showETA(Node* r) {
+		if (r != NULL) {
+			showETA(r->left);
+			cout << "Flight ";
+			r->key.Print();
+			cout << "  ETA = " << r->departure << " + " << r->duration << " hrs (" << r->status << ")" << endl;
+			showETA(r->right);
+		}
+			
+	}
+
+	void showDiscount(Node* r) {
+		if (r != NULL) {
+			showDiscount(r->left);
+
+			
+			float basePrice = r->duration * 1000;
+			float discount = 0;
+
+			if (r->duration > 5)
+				discount = basePrice * 0.10; // 10% off
+			else
+				discount = basePrice * 0.05; // 5% off
+
+			float finalPrice = basePrice - discount;
+
+			cout << "Flight ";
+			r->key.Print();
+			cout << " Destination: " << r->destination
+				<< "  Duration: " << r->duration << " hrs"
+				<< "  Base Price: Rs. " << basePrice
+				<< " Discount: Rs. " << discount
+				<< "  Final Price: Rs. " << finalPrice << endl;
+
+			showDiscount(r->right);
+		}
+	}
+
+
+	Node* getRoot() {
+		return r;
+	}
+};
+
+int main() {
+	BST tree;
+	int choice;
+	do {
+		cout << "1. Insert Flight" << endl;
+		cout << "2. Delete Flight" << endl;
+		cout << "3. Search Flight" << endl;
+		cout << "4. Display All" << endl;
+		cout << "5. Show ETA" << endl;
+		cout << "6. Show Discounted prices" << endl;
+		cout << "7. Exit" << endl;
+		cout << "Enter choice: ";
+
+		cin >> choice;
+		cin.ignore();
+
+		if (choice == 1) {
+			int id;
+			string dest, dep, stat;
+			float dur;
+			cout << "Enter Flight ID: ";
+			cin >> id; cin.ignore();
+			cout << "Enter Destination: ";
+			getline(cin, dest);
+			cout << "Enter Departure Time: ";
+			getline(cin, dep);
+			cout << "Enter Duration (hours): ";
+			cin >> dur; cin.ignore();
+			cout << "Enter Status (Departed/Landed/Delayed): ";
+			getline(cin, stat);
+
+			itemtype key;
+			key.Initialize(id);
+			Node* n = new Node(key, dest, dep, dur, stat);
+			tree.insert(n);
+			cout << "Flight inserted!" << endl;
+		}
+		else if (choice == 2) {
+			int id;
+			cout << "Enter Flight id to delete: ";
+			cin >> id;
+			itemtype k;
+			k.Initialize(id);
+			Node* found = tree.search(tree.getRoot(), k);
+			if (found != NULL) {
+				tree.Delete(found);
+				cout << "Flight deleted." << endl;
+			}
+			else {
+				cout << "Flight not found." << endl;
+			}
+		}
+		else if (choice == 3) {
+			int id;
+			cout << "Enter Flight id to search: ";
+			cin >> id;
+			itemtype k;
+			k.Initialize(id);
+			Node* found = tree.search(tree.getRoot(), k);
+
+			if (found != NULL) {
+				cout << "Flight found" << endl;
+				found->key.Print();
+				cout << "  " << found->destination << "  " << found->departure
+					<< "  " << found->duration << "  " << found->status << endl;
+			}
+			else
+				cout << "Flight not found." << endl;
+
+		}
+
+		else if (choice == 4) {
+			tree.Display();
+		}
+
+		else if (choice == 5) {
+			cout << "Showing ETA for all flights:" << endl;
+			tree.showETA(tree.getRoot());
+
+		}
+		else if (choice == 6) {
+			if (tree.getRoot() == nullptr)
+				cout << "No flights available." << endl;
+			else
+				tree.showDiscount(tree.getRoot());
+		}
+		else if (choice == 7) {
+			cout << "Goodbye!" << endl;
+		}
+		else {
+			cout << "Invalid choice." << endl;
+
+
+		} 
+		
+	} while (choice != 7);
+	return 0;
+}
